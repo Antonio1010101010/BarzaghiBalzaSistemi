@@ -1,108 +1,54 @@
-import { Component, signal, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { WeatherService } from './weather.service';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { SafePipe } from './safe.pipe';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet],
+  imports: [CommonModule, FormsModule, HttpClientModule, SafePipe],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class App {
-  protected readonly title = signal('MeteoApp');
-  private weatherService = inject(WeatherService);
+  city = '';
+  weather = signal<any>(null);
+  forecast = signal<any[]>([]);
+  mapUrlSignal = signal<string>('');
 
-  city = signal('');
-  loading = signal(false);
-  error = signal<string | null>(null);
-  location = signal<{ name: string; lat: number; lon: number } | null>(null);
-  weather = signal<any | null>(null);
-  expandedDayIndex = signal<number | null>(null);
+  constructor(private http: HttpClient) {}
 
-  // Cerca la città e carica meteo
-  async search() {
-    const q = this.city().trim();
-    if (!q) {
-      this.error.set('Inserisci il nome di una città');
-      return;
-    }
+  getWeather() {
+    if (!this.city) return;
 
-    this.error.set(null);
-    this.loading.set(true);
-    this.location.set(null);
-    this.weather.set(null);
+    const city = encodeURIComponent(this.city);
 
-    try {
-      const loc = await firstValueFrom(this.weatherService.geocode(q));
-      if (!loc) {
-        this.error.set('Città non trovata');
-        this.loading.set(false);
-        return;
-      }
+    // Usa Open-Meteo per meteo attuale e forecast
+    this.http.get(`https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`)
+      .subscribe((data: any) => {
+        this.weather.set(data.current_weather);
+        this.forecast.set(data.daily ? data.daily.time.map((t: any, i: number) => ({
+          time: t,
+          tempMax: data.daily.temperature_2m_max[i],
+          tempMin: data.daily.temperature_2m_min[i],
+          precipitation: data.daily.precipitation_sum[i]
+        })) : []);
+      });
 
-      this.location.set(loc);
-      const data = await firstValueFrom(this.weatherService.getWeather(loc.lat, loc.lon));
-      this.weather.set(data);
-    } catch (e: any) {
-      this.error.set('Errore durante il recupero dei dati');
-    } finally {
-      this.loading.set(false);
-    }
+    // Genera link Google Maps della città
+    this.mapUrlSignal.set(`https://www.google.com/maps?q=${city}&output=embed`);
   }
 
-  // Aggiorna meteo per la città già selezionata
-  async refresh() {
-    const loc = this.location();
-    if (!loc) {
-      this.error.set('Nessuna città selezionata da aggiornare');
-      return;
-    }
-
-    this.error.set(null);
-    this.loading.set(true);
-
-    try {
-      const data = await firstValueFrom(this.weatherService.getWeather(loc.lat, loc.lon));
-      this.weather.set(data);
-    } catch {
-      this.error.set('Errore durante il refresh');
-    } finally {
-      this.loading.set(false);
-    }
+  getWeatherEmoji(code: number) {
+    // Semplice esempio
+    if (code === 0) return '☀️';
+    if (code <= 3) return '⛅';
+    if (code <= 49) return '🌧️';
+    return '❓';
   }
 
-  // Espande / chiude i dettagli giornalieri
-  toggleDay(i: number) {
-    const current = this.expandedDayIndex();
-    this.expandedDayIndex.set(current === i ? null : i);
-  }
-
-  // Converte il codice meteo in descrizione leggibile con emoji
-  getWeatherDescription(code: number): string {
-    const mapping: { [key: number]: string } = {
-      0: '☀️ Cielo sereno',
-      1: '🌤️ Poco nuvoloso',
-      2: '⛅ Parzialmente nuvoloso',
-      3: '☁️ Nuvoloso',
-      45: '🌫️ Nebbia',
-      48: '🌫️❄️ Nebbia ghiacciata',
-      51: '🌦️ Pioggia leggera',
-      53: '🌧️ Pioggia moderata',
-      55: '🌧️☔ Pioggia intensa',
-      61: '🌦️ Pioggia debole',
-      63: '🌧️ Pioggia moderata',
-      65: '🌧️☔ Pioggia intensa',
-      71: '❄️ Neve leggera',
-      73: '❄️ Neve moderata',
-      75: '❄️ Neve intensa',
-      80: '🌦️ Rovesci',
-      81: '🌧️ Rovesci forti',
-      95: '⛈️ Temporale',
-    };
-    return mapping[code] || '❓ Condizione sconosciuta';
+  mapUrl() {
+    return this.mapUrlSignal();
   }
 }
