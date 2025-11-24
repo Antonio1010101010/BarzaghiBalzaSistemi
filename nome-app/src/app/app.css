@@ -1,40 +1,103 @@
-.container {
-  max-width: 900px;
-  margin: 20px auto;
+body, html {
+  margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(to bottom, #a0c4ff, #caf0f8);
+  padding: 40px 20px;
+}
+
+.title {
+  font-size: 3em;
+  color: #023e8a;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-input {
-  padding: 8px;
-  width: 200px;
-  margin-right: 10px;
+.search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-button {
-  padding: 8px 12px;
+.search input {
+  padding: 10px;
+  font-size: 1.2em;
+  border-radius: 5px;
+  border: 1px solid #0077b6;
+}
+
+.search button {
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border: none;
+  border-radius: 5px;
+  background-color: #0077b6;
+  color: white;
   cursor: pointer;
 }
 
+.search button:hover {
+  background-color: #0096c7;
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.loading {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.main {
+  width: 100%;
+  max-width: 900px;
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+}
+
 .weather-block {
-  display: flex;
-  justify-content: space-between;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.forecast-block {
   margin-top: 20px;
+}
+
+.forecast-list {
+  display: flex;
+  gap: 15px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
-.current-weather, .forecast, .map-block {
+.day {
+  background: rgba(255, 255, 255, 0.2);
   padding: 10px;
-  margin: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 5px;
+  text-align: center;
 }
 
-.current-weather {
-  min-width: 200px;
-}
+/* Meteo dinamico */
+.sunny { background: linear-gradient(to right, #fcbf49, #f77f00); }
+.rainy { background: linear-gradient(to right, #0077b6, #00b4d8); }
+.snowy { background: linear-gradient(to right, #e0fbfc, #ade8f4); color: black; }
+.storm { background: linear-gradient(to right, #000428, #004e92); }
+.cloudy { background: linear-gradient(to right, #8ecae6, #219ebc); }
+.drizzle { background: linear-gradient(to right, #90e0ef, #48cae4); }
+.foggy { background: linear-gradient(to right, #d3d3d3, #a9a9a9); color: black; }
 
-.forecast-day {
-  border-top: 1px solid #ddd;
-  padding: 5px 0;
+.map-block {
+  margin-top: 20px;
 }

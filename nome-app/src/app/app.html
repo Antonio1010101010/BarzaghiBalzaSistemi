@@ -1,28 +1,35 @@
 <div class="container">
-  <h1>Meteo & Map</h1>
-  <input [(ngModel)]="city" placeholder="Inserisci città" />
-  <button (click)="getWeather()">Cerca</button>
-  <iframe [src]="mapUrl() | safe" width="100%" height="400"></iframe>
+  <h1 class="title">TonyMeteo</h1>
 
-
-  <div class="weather-block" *ngIf="weather()">
-    <div class="current-weather">
-      <div class="weather-icon">{{ getWeatherEmoji(weather()?.weathercode) }}</div>
-      <p class="temp">{{ weather()?.temperature }}°C</p>
-      <p class="details">💨 Vento: {{ weather()?.windspeed }} km/h</p>
-      <p class="details">💧 Umidità: {{ weather()?.humidity || '—' }}%</p>
-    </div>
-
-    <div class="forecast" *ngIf="forecast().length">
-      <div class="forecast-day" *ngFor="let day of forecast()">
-        <p>{{ day.time }}</p>
-        <p>⬆️ {{ day.tempMax }}°C ⬇️ {{ day.tempMin }}°C</p>
-        <p>💧 {{ day.precipitation }} mm</p>
-      </div>
-    </div>
+  <div class="search">
+    <input [(ngModel)]="city" placeholder="Inserisci città" />
+    <button (click)="search()">Cerca</button>
   </div>
 
-  <div class="map-block" *ngIf="mapUrl()">
-    <iframe [src]="mapUrl() | safe" width="100%" height="400" frameborder="0"></iframe>
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <div *ngIf="loading" class="loading">Caricamento...</div>
+
+  <div *ngIf="currentWeather()" class="main" [ngClass]="getWeatherClass()">
+    <div class="weather-block">
+      <h2>{{ currentWeather()?.name }}</h2>
+      <p class="desc">{{ currentWeather()?.description }}</p>
+      <p class="temp">{{ currentWeather()?.temperature }}°C</p>
+      <p>💨 Vento: {{ currentWeather()?.windspeed }} km/h</p>
+    </div>
+
+    <div class="forecast-block" *ngIf="forecast().length">
+      <h3>Previsioni</h3>
+      <div class="forecast-list">
+        <div class="day" *ngFor="let f of forecast()">
+          <p class="date">{{ f.date }}</p>
+          <p>{{ f.temp_min }}°C / {{ f.temp_max }}°C</p>
+          <p>🌧️ {{ f.rain }} mm</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-block" *ngIf="mapUrl()">
+      <iframe [src]="mapUrl() | safe" width="100%" height="400" frameborder="0"></iframe>
+    </div>
   </div>
 </div>
